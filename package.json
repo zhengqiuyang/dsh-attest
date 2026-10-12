@@ -1,5 +1,5 @@
 {
-  "name": "dsh-attest",
+  "name": "dsh-attest-chain",
   "version": "0.1.0",
   "description": "Signed chain-of-custody for DeepSeek Harness sessions: every watched tool result appends a hash-chained, ed25519-signed record — what the agent did, provable after the fact",
   "type": "module",

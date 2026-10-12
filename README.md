@@ -1,4 +1,4 @@
-# dsh-attest
+# dsh-attest-chain
 
 Signed chain-of-custody for [DeepSeek Harness](https://github.com/deepseek-ai/deepseek-harness) (dsh) sessions.
 
@@ -10,7 +10,7 @@ and the chain breaks; delete the tail and it no longer matches the published
 head. Zero LLM calls in the trust path.
 
 Family: **dsh-read-guard** guards what the agent reads, **dsh-pr-gate** gates
-what it writes, **dsh-attest** proves what it did.
+what it writes, **dsh-attest-chain** proves what it did.
 
 ## Why now (checked 2026-10-12)
 
@@ -27,8 +27,8 @@ can consume this ledger as session-side evidence.
 ```
 tool result ──> custody record {time, tool, callId, isError, sha256(content)}
             ──> chained: digest = sha256(canonicalJSON({seq, prevDigest, record}))
-            ──> signed: ed25519 over the digest (keypair in .dsh-attest/keys/)
-            ──> appended: .dsh-attest/session.jsonl (one line, strict order)
+            ──> signed: ed25519 over the digest (keypair in .dsh-attest-chain/keys/)
+            ──> appended: .dsh-attest-chain/session.jsonl (one line, strict order)
 ```
 
 Verification is pure and offline: replay the ledger, recompute every digest,
@@ -43,30 +43,26 @@ need tamper-evidence against a published head.
 ## Install
 
 ```sh
-dsh plugin --profile default add github:zhengqiuyang/dsh-attest
+dsh plugin --profile default add dsh-attest-chain
 ```
 
-git installs build from source; authorize the build once in the profile's
-`pnpm-workspace.yaml`:
+From npm — no build step, no `allowBuilds` authorization; git installs are equally prebuilt (`lib/` ships in the repo).
 
-```yaml
-allowBuilds:
-  dsh-attest: true
-```
+
 
 ## Configure
 
 ```yaml
-- id: dsh-attest
-  name: dsh-attest
+- id: dsh-attest-chain
+  name: dsh-attest-chain
   config:
     tools: [bash, write, edit, str_replace_editor, web_fetch]
-    ledgerPath: .dsh-attest/session.jsonl
-    keysDir: .dsh-attest/keys
+    ledgerPath: .dsh-attest-chain/session.jsonl
+    keysDir: .dsh-attest-chain/keys
     sign: true
 ```
 
-Add `.dsh-attest/` to your repository's `.gitignore` — the private key must
+Add `.dsh-attest-chain/` to your repository's `.gitignore` — the private key must
 never be committed; the public key is what a verifier checks.
 
 ## Develop

@@ -1,5 +1,5 @@
 /**
- * dsh-attest — signed chain-of-custody for DeepSeek Harness sessions.
+ * dsh-attest-chain — signed chain-of-custody for DeepSeek Harness sessions.
  *
  * Headless agents bypass PR gates entirely; chat UIs show what the agent said
  * it did. This plugin records what the agent actually did: every watched tool
@@ -8,7 +8,7 @@
  * the published head. Zero LLM calls in the trust path.
  *
  * Family: dsh-read-guard guards what the agent READS, dsh-pr-gate gates what
- * it WRITES, dsh-attest proves what it DID.
+ * it WRITES, dsh-attest-chain proves what it DID.
  *
  * Thin adapter: canonical-JSON determinism and the ed25519 helpers are
  * vendored from agent-attest (`npm run sync`).
@@ -28,7 +28,7 @@ import {
 import { extractCommitShas } from './commits.js';
 import { ensureKeys, type SessionKeyMaterial } from './keys.js';
 
-export const name = 'dsh-attest';
+export const name = 'dsh-attest-chain';
 
 export interface Config {
   /** Tools whose results become custody records. */
@@ -45,8 +45,8 @@ export const Config: Schema<Config> = Schema.object({
   tools: Schema.array(Schema.string())
     .default(['bash', 'write', 'edit', 'str_replace_editor', 'web_fetch'])
     .description('tools whose results become custody records'),
-  ledgerPath: Schema.string().default('.dsh-attest/session.jsonl').description('JSONL ledger path; empty disables'),
-  keysDir: Schema.string().default('.dsh-attest/keys').description('directory for the session keypair'),
+  ledgerPath: Schema.string().default('.dsh-attest-chain/session.jsonl').description('JSONL ledger path; empty disables'),
+  keysDir: Schema.string().default('.dsh-attest-chain/keys').description('directory for the session keypair'),
   sign: Schema.boolean().default(true).description('ed25519-sign every record'),
 });
 
@@ -104,7 +104,7 @@ function recordFor(
 
 export function apply(ctx: Context, config: Config) {
   if (config.ledgerPath === '') {
-    console.log('[dsh-attest] disabled (ledgerPath is empty)');
+    console.log('[dsh-attest-chain] disabled (ledgerPath is empty)');
     return;
   }
   const watched = new Set(config.tools);
@@ -112,7 +112,7 @@ export function apply(ctx: Context, config: Config) {
     ? ensureKeys(config.keysDir)
     : undefined;
   console.log(
-    `[dsh-attest] active: custody chain for [${[...watched].join(', ')}], ` +
+    `[dsh-attest-chain] active: custody chain for [${[...watched].join(', ')}], ` +
       `sign=${config.sign ? `ed25519:${keys?.keyid.slice(0, 16)}…` : 'off'}, ` +
       `ledger=${config.ledgerPath}`,
   );
@@ -134,7 +134,7 @@ export function apply(ctx: Context, config: Config) {
         await mkdir(dirname(config.ledgerPath), { recursive: true });
         await appendFile(config.ledgerPath, toLineText(line) + '\n', 'utf8');
       } catch (err) {
-        console.warn(`[dsh-attest] ledger append failed: ${String(err)}`);
+        console.warn(`[dsh-attest-chain] ledger append failed: ${String(err)}`);
       }
     });
     return;

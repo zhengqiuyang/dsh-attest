@@ -1,4 +1,4 @@
-# Dev overlay: pnpm dsh web --patch C:/Users/Admin/.zcode/workspace/default/dsh-attest/cordis.dev.patch.yml
+# Dev overlay: pnpm dsh web --patch C:/Users/Admin/.zcode/workspace/default/dsh-attest-chain/cordis.dev.patch.yml
 - insert:
-    - id: dsh-attest
-      name: 'C:/Users/Admin/.zcode/workspace/default/dsh-attest/src/index.ts'
+    - id: dsh-attest-chain
+      name: 'C:/Users/Admin/.zcode/workspace/default/dsh-attest-chain/src/index.ts'

@@ -1,4 +1,4 @@
 # Applied when a profile lists this bundle.
 - insert:
-    - id: dsh-attest
-      name: dsh-attest
+    - id: dsh-attest-chain
+      name: dsh-attest-chain
