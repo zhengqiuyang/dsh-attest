@@ -25,6 +25,7 @@ import {
   type ChainLine,
   type CustodyRecord,
 } from './chain.js';
+import { extractCommitShas } from './commits.js';
 import { ensureKeys, type SessionKeyMaterial } from './keys.js';
 
 export const name = 'dsh-attest';
@@ -80,6 +81,27 @@ function contentDigest(content: readonly ({ type: string } & Record<string, unkn
   return hash.digest('hex');
 }
 
+function recordFor(
+  exec: Readonly<ToolExecView>,
+  result: Readonly<ToolResultView>,
+  now: string,
+): CustodyRecord {
+  const text = result.content
+    .filter((block): block is { type: string } & Record<string, unknown> & { text: string } =>
+      typeof (block as { text?: unknown }).text === 'string')
+    .map((block) => block.text)
+    .join('\n');
+  const commitSha = extractCommitShas(text)[0];
+  return {
+    time: now,
+    tool: exec.name,
+    callId: String(exec.callId),
+    isError: result.isError,
+    contentSha256: contentDigest(result.content),
+    ...(commitSha !== undefined ? { commitSha } : {}),
+  };
+}
+
 export function apply(ctx: Context, config: Config) {
   if (config.ledgerPath === '') {
     console.log('[dsh-attest] disabled (ledgerPath is empty)');
@@ -102,13 +124,7 @@ export function apply(ctx: Context, config: Config) {
 
   ctx.on('tools/result', (exec, result) => {
     if (!watched.has(exec.name)) return;
-    const record: CustodyRecord = {
-      time: new Date().toISOString(),
-      tool: exec.name,
-      callId: String(exec.callId),
-      isError: result.isError,
-      contentSha256: contentDigest(result.content),
-    };
+    const record = recordFor(exec, result, new Date().toISOString());
     const line: ChainLine = makeLine(seq, prevDigest, record, keys?.privatePem);
     seq += 1;
     prevDigest = line.digest;

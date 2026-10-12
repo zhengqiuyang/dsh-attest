@@ -157,6 +157,30 @@ await test('ensureKeys generates, persists, and reloads the same pair', () => {
   }
 });
 
+
+console.log('commits');
+
+await test('commit markers extracted from git output', async () => {
+  const { extractCommitShas } = await import('../lib/commits.js');
+  assert.deepEqual(extractCommitShas('[main a1b2c3d] fix: thing'), ['a1b2c3d']);
+  assert.deepEqual(extractCommitShas('[feature/x 1a2b3c4d5e] wip\n 2 files changed'), ['1a2b3c4d5e']);
+  assert.deepEqual(extractCommitShas('nothing to commit, working tree clean'), []);
+});
+
+await test('custody record carries commitSha when present', async () => {
+  const { makeLine, verifyChain, GENESIS } = await import('../lib/chain.js');
+  const { generateKeyPairSync } = await import('node:crypto');
+  const { privateKey } = generateKeyPairSync('ed25519');
+  const privPem = privateKey.export({ type: 'pkcs8', format: 'pem' }).toString();
+  const rec = {
+    time: 't', tool: 'bash', callId: 'c1', isError: false,
+    contentSha256: 'a'.repeat(64), commitSha: 'a1b2c3d',
+  };
+  const line = makeLine(0, GENESIS, rec, privPem);
+  assert.equal(line.record.commitSha, 'a1b2c3d');
+  assert.equal(line.sig !== undefined, true);
+});
+
 console.log('');
 console.log(`${passed} passed, ${failed} failed`);
 process.exit(failed === 0 ? 0 : 1);

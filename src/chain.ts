@@ -18,6 +18,8 @@ export interface CustodyRecord {
   isError: boolean;
   /** sha256 of the model-facing content, hex. */
   contentSha256: string;
+  /** Commit identity bound into the chain when the call created commits. */
+  commitSha?: string;
 }
 
 export interface ChainLine {
